@@ -4,7 +4,7 @@
 
 ## The rules of the game
 
-The games has several levels to complete. The goal is simple: find the
+The game has several levels to complete. The goal is simple: find the
 snake **shed skin**, eat the exact amount of **fruit** to reach the size of
 that skin, and **cover** it precisely.
 

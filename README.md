@@ -61,3 +61,10 @@ by Florent Monnier and said to myself: why not do this with
 
 You can read [here](https://github.com/sanette/snake-bogue) how it all
 started.
+
+## TODO
+
+* More levels
+* High-scores list
+* More fruit with effects
+* Background music(?)

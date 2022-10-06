@@ -26,13 +26,31 @@ https://youtu.be/h1MC9-xDKFA
 
 ## Install
 
-Currently, you have to install `snóke` as an opam package:
+Currently, you have to install Snóke as an opam package. Either
 ```
+opam pin add https://github.com/sanette/snoke.git
 opam install snoke
 ```
 
-I'm trying to learn how to distribute a binary package for those who
-don't want to install the whole `ocaml` stack!
+Or, download or clone this repo, `cd` into the `snoke` dir, and
+```
+opam install .
+```
+
+Then you should be able to launch the game with
+```
+snoke
+```
+
+Alternatively, instead of the install step, you can directly run the game with
+```
+dune exec src/snoke.exe
+```
+
+### ???
+
+Yes, I know... I'm trying to learn how to distribute a binary package
+for those who don't want to install the whole `ocaml` stack!
 
 ## How did you make such a wonderful and entertaining game?
 

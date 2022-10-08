@@ -6,7 +6,7 @@
 (install
  (section share)
  (files
-   "SnakeChan-MMoJ.ttf"
+  "SnakeChan-MMoJ.ttf"
   ("images/apple.png" as "images/apple.png")
   ("images/banana.png" as "images/banana.png")
   ("images/bonus.png" as "images/bonus.png")
@@ -32,5 +32,4 @@
   ("sounds/oh_yeah.wav" as "sounds/oh_yeah.wav")
   ("sounds/over.wav" as "sounds/over.wav")
   ("sounds/re.wav" as "sounds/re.wav")
-  ("sounds/sol.wav" as "sounds/sol.wav")
-))
+  ("sounds/sol.wav" as "sounds/sol.wav")))

@@ -7,7 +7,7 @@ authors: ["Vu Ngoc San <san.vu-ngoc@laposte.net>"]
 license: "GPL-3.0-or-later"
 depends: [
   "dune" {>= "2.9"}
-  "bogue" {>= "20221001"}
+  "bogue" {>= "20221008"}
   "odoc" {with-doc}
 ]
 build: [

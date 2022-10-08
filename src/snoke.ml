@@ -13,7 +13,6 @@
 
    Bananas give you more points and make you slide faster, except when you reach
    the size of the target.
-
 *)
 
 open Printf
@@ -33,8 +32,11 @@ let print_messages = false
 let fps_boost = 10
 let bonus = 4 (* optimal path score bonus *)
 
-let prefix = match Theme.find_share "snoke" "SnakeChan-MMoJ.ttf" with
-  | None -> print_endline "Cannot find share directory!"; "."
+let prefix =
+  match Theme.find_share "snoke" "SnakeChan-MMoJ.ttf" with
+  | None ->
+      print_endline "Cannot find share directory!";
+      "."
   | Some path -> path
 
 (* Overrides some of Bogue's theme variables *)
@@ -46,13 +48,8 @@ let () =
   Draw.(set_text_color (find_color "azure"))
 
 type pos = int * int
-
-type direction =  Left | Right | Up | Down
-
-type fruit =
-  | Apple
-  | Banana
-  | Bonus
+type direction = Left | Right | Up | Down
+type fruit = Apple | Banana | Bonus
 
 type game_state = {
   pos_snake : pos;
@@ -68,7 +65,7 @@ type game_state = {
   score : int;
   level : Levels.t;
   full_size : bool;
-  paused : bool
+  paused : bool;
 }
 
 type images = {
@@ -79,7 +76,7 @@ type images = {
   snake_turn_neg : W.t;
   apple : W.t;
   banana : W.t;
-  bonus : W.t
+  bonus : W.t;
 }
 
 type sounds = {
@@ -93,7 +90,7 @@ type sounds = {
   completed : Mixer.sound;
   new_level : Mixer.sound;
   yeah : Mixer.sound;
-  great : Mixer.sound
+  great : Mixer.sound;
 }
 
 type cell = L.t (* a [cell] is a layout of size scale x scale *)
@@ -103,7 +100,7 @@ type score_board = {
   length : W.t;
   target_length : W.t;
   new_message : ?delay:int -> string -> unit;
-  layout : L.t
+  layout : L.t;
 }
 
 type area = {
@@ -115,32 +112,28 @@ type area = {
   target_images : images;
   sounds : sounds;
   score_board : score_board;
-  game_bg : L.background option
+  game_bg : L.background option;
 }
 
 (* Manhattan distance (L¹) *)
-let dist (x,y) (x1,y1) =
-  (abs (x - x1)) + (abs (y - y1))
+let dist (x, y) (x1, y1) = abs (x - x1) + abs (y - y1)
 
-let vec_dir (x1,y1) (x2,y2) =
-  match x2 - x1, y2 - y1 with
-  | (1,0) -> Right
-  | (0,-1) -> Up
-  | (-1,0) -> Left
-  | (0,1) -> Down
+let vec_dir (x1, y1) (x2, y2) =
+  match (x2 - x1, y2 - y1) with
+  | 1, 0 -> Right
+  | 0, -1 -> Up
+  | -1, 0 -> Left
+  | 0, 1 -> Down
   | _ -> invalid_arg "[vec_dir] wrong vector"
 
 (* Direction of the first element (head) of the list *)
 let dir_seg = function
-  | a::(b::_) -> vec_dir b a
+  | a :: b :: _ -> vec_dir b a
   | _ -> invalid_arg "[dir_seg] list too short"
 
 (* Positive means counterclockwise *)
 let positive_turn = function
-  | Right, Up
-  | Down, Right
-  | Left, Down
-  | Up, Left -> true
+  | Right, Up | Down, Right | Left, Down | Up, Left -> true
   | _ -> false
 
 let angle_from_dir = function
@@ -151,23 +144,23 @@ let angle_from_dir = function
 
 let images_dir = Filename.concat prefix images_dir
 let sounds_dir = Filename.concat prefix sounds_dir
-
-let load_img file =
-  W.image ~w:scale ~h:scale (Filename.concat images_dir file)
+let load_img file = W.image ~w:scale ~h:scale (Filename.concat images_dir file)
 
 let load_images () =
-  { snake_body = load_img "snake-body.png";
+  {
+    snake_body = load_img "snake-body.png";
     snake_head = load_img "snake-head.png";
     snake_tail = load_img "snake-tail.png";
     snake_turn_pos = load_img "snake-turn-pos.png";
     snake_turn_neg = load_img "snake-turn-neg.png";
     apple = load_img "apple.png";
     banana = load_img "banana.png";
-    bonus = load_img "bonus.png"
+    bonus = load_img "bonus.png";
   }
 
 let load_target_images () =
-  { snake_body = load_img "snake-body-grey.png";
+  {
+    snake_body = load_img "snake-body-grey.png";
     snake_head = load_img "snake-head-grey.png";
     snake_tail = load_img "snake-tail-grey.png";
     snake_turn_pos = load_img "snake-turn-pos-grey.png";
@@ -178,41 +171,46 @@ let load_target_images () =
   }
 
 let get_turn_image old_dir new_dir images =
-  if positive_turn (old_dir, new_dir)
-  then images.snake_turn_pos else images.snake_turn_neg
+  if positive_turn (old_dir, new_dir) then images.snake_turn_pos
+  else images.snake_turn_neg
 
 (* Warning, if we indicate a direction in [make_cell], the rotation is permanent
    to the new image, contrary to using L.rotate. *)
-let make_cell ?direction image (x,y) =
+let make_cell ?direction image (x, y) =
   let rotate = Option.map angle_from_dir direction in
-  let cell = L.resident ~x:(x*scale) ~y:(y*scale) (W.image_copy ?rotate image) in
+  let cell =
+    L.resident ~x:(x * scale) ~y:(y * scale) (W.image_copy ?rotate image)
+  in
   (* Option.iter (rotate_cell cell) direction; *)
   assert (L.height cell = scale);
   cell
 
-let move_cell cell (x,y) =
-  L.setx cell (x*scale);
-  L.sety cell (y*scale)
+let move_cell cell (x, y) =
+  L.setx cell (x * scale);
+  L.sety cell (y * scale)
 
-let fruit_layout images fruit (x,y) =
-  let image = match fruit with
-    | Apple ->  images.apple
+let fruit_layout images fruit (x, y) =
+  let image =
+    match fruit with
+    | Apple -> images.apple
     | Banana -> images.banana
     | Bonus -> images.bonus
   in
-  L.resident ~x:(x*scale) ~y:(y*scale) image
+  L.resident ~x:(x * scale) ~y:(y * scale) image
 
 let load_sound, play_sound =
   let devname = Mixer.init () in
   let mixer = Mixer.create_mixer devname in
   Mixer.unpause mixer;
-  (fun ?(volume=0.5) file ->
-     let c = Mixer.load_chunk mixer (Filename.concat sounds_dir file) in
-     Mixer.change_volume volume c; c),
-  (fun sound -> ignore @@ Mixer.play_chunk mixer sound)
+  ( (fun ?(volume = 0.5) file ->
+      let c = Mixer.load_chunk mixer (Filename.concat sounds_dir file) in
+      Mixer.change_volume volume c;
+      c),
+    fun sound -> ignore @@ Mixer.play_chunk mixer sound )
 
 let load_sounds () =
-  { eat = load_sound ~volume:0.4 "crunch.wav";
+  {
+    eat = load_sound ~volume:0.4 "crunch.wav";
     right = load_sound ~volume:0.2 "do.wav";
     up = load_sound ~volume:0.2 "sol.wav";
     left = load_sound ~volume:0.2 "fa.wav";
@@ -231,34 +229,33 @@ let fruit_sound sounds = function
   | Bonus -> sounds.fast
 
 let play_sounds sounds old_state new_state =
-  if Levels.is_new new_state.level
-  then if not (Levels.is_new old_state.level) then play_sound sounds.new_level else () (* and nothing else *)
-  else if new_state.game_over
-  then if not old_state.game_over then play_sound sounds.over
+  if Levels.is_new new_state.level then
+    if not (Levels.is_new old_state.level) then play_sound sounds.new_level
+    else () (* and nothing else *)
+  else if new_state.game_over then
+    if not old_state.game_over then play_sound sounds.over
     else () (* nothing else *)
-  else begin
+  else (
     (* Eating a fruit *)
-    if old_state.pos_fruit <> new_state.pos_fruit
-    then if new_state.full_size
-      then play_sound sounds.yeah
-      else if new_state.has_bonus
-      then play_sound sounds.great
+    if old_state.pos_fruit <> new_state.pos_fruit then
+      if new_state.full_size then play_sound sounds.yeah
+      else if new_state.has_bonus then play_sound sounds.great
       else play_sound (fruit_sound sounds old_state.fruit);
 
     (* Changing direction *)
-    if old_state.dir_snake <> new_state.dir_snake
-    then let sound = match new_state.dir_snake with
+    if old_state.dir_snake <> new_state.dir_snake then
+      let sound =
+        match new_state.dir_snake with
         | Right -> sounds.right
         | Up -> sounds.up
         | Left -> sounds.left
-        | Down -> sounds.down in
+        | Down -> sounds.down
+      in
       play_sound sound
     else ();
 
-    if not old_state.level.completed && new_state.level.completed
-    then play_sound sounds.completed
-  end
-;;
+    if (not old_state.level.completed) && new_state.level.completed then
+      play_sound sounds.completed)
 
 let make_score_board () =
   let background = L.color_bg Draw.(opaque black) in
@@ -268,14 +265,15 @@ let make_score_board () =
   let score = W.label ~fg ~align:Draw.Min "0000" in
   let length = W.label ~fg ~align:Draw.Max "00" in
   let target_length = W.label ~fg ~align:Draw.Min "/00" in
-  let messages = W.label ~fg:Draw.(opaque (find_color "azure"))
-      "Welcome to snoke!" in
+  let messages =
+    W.label ~fg:Draw.(opaque (find_color "azure")) "Welcome to snoke!"
+  in
   let w = 5 * width * scale / 16 in
   let msg = L.resident ~w messages in
-  let a = L.flat_of_w [label_score; score] in
-  let b = L.flat_of_w [label_length; length; target_length] in
-  let layout = L.flat ~margins:2 ~background [a; msg; b] in
-  L.set_width layout (width*scale);
+  let a = L.flat_of_w [ label_score; score ] in
+  let b = L.flat_of_w [ label_length; length; target_length ] in
+  let layout = L.flat ~margins:2 ~background [ a; msg; b ] in
+  L.set_width layout (width * scale);
   let new_message =
     let timeout = ref None in
     fun ?delay text ->
@@ -283,12 +281,16 @@ let make_score_board () =
       let f () =
         if print_messages then print_endline text;
         W.set_text messages text;
-        L.fade_in msg;
-        (* L.slide_in ~dst:layout msg *) in
+        L.fade_in msg
+        (* L.slide_in ~dst:layout msg *)
+      in
       match delay with
-      | None -> timeout := None; f ()
-      | Some t -> timeout := Some (Timeout.add t f) in
-  {score; length; target_length; new_message; layout}
+      | None ->
+          timeout := None;
+          f ()
+      | Some t -> timeout := Some (Timeout.add t f)
+  in
+  { score; length; target_length; new_message; layout }
 
 (* Create the snake from the list of positions *)
 let build_snake images seg_snake =
@@ -297,33 +299,36 @@ let build_snake images seg_snake =
   let head = make_cell ~direction images.snake_head pos in
   let rec loop direction snake_rev = function
     | [] -> invalid_arg "[build_snake] list too short"
-    | [p] -> let tail = make_cell ~direction images.snake_tail p in
-      List.rev (tail :: snake_rev)
-    | p::rest as list ->
-      let new_dir = dir_seg list in
-      let image =
-        if new_dir = direction then images.snake_body
-        else get_turn_image new_dir direction images in
-      let cell = make_cell ~direction:new_dir image p in
-      loop new_dir (cell :: snake_rev) rest
+    | [ p ] ->
+        let tail = make_cell ~direction images.snake_tail p in
+        List.rev (tail :: snake_rev)
+    | p :: rest as list ->
+        let new_dir = dir_seg list in
+        let image =
+          if new_dir = direction then images.snake_body
+          else get_turn_image new_dir direction images
+        in
+        let cell = make_cell ~direction:new_dir image p in
+        loop new_dir (cell :: snake_rev) rest
   in
-  loop direction [head] (List.tl seg_snake)
+  loop direction [ head ] (List.tl seg_snake)
 
 let make_area () =
-  let w, h = scale * width, scale * height in
+  let w, h = (scale * width, scale * height) in
   let images = load_images () in
   let target_images = load_target_images () in
-  let _game_bg = Some (L.color_bg Draw.(opaque (find_color "powderblue")))
-  in
-  { snake = L.empty ~name:"snake" ~w ~h ();
+  let _game_bg = Some (L.color_bg Draw.(opaque (find_color "powderblue"))) in
+  {
+    snake = L.empty ~name:"snake" ~w ~h ();
     target = L.empty ~name:"snake" ~w ~h ();
     screen = L.resident ~name:"screen" (W.empty ~w ~h ());
-    fruit = L.empty  ~w:scale ~h:scale ();
+    fruit = L.empty ~w:scale ~h:scale ();
     images;
     target_images;
     sounds = load_sounds ();
     score_board = make_score_board ();
-    game_bg = None}
+    game_bg = None;
+  }
 
 (* Smoothing animations: *)
 
@@ -332,77 +337,78 @@ let fromto = Avar.fromto_unif
 (* Apply smooth rotation from the *previous* rotation to smoothly arrive at the
    *current* rotation. *)
 let smooth_rotate_cell duration from_dir to_dir cell =
-  let angle =
-    if positive_turn (from_dir, to_dir) then (-.90.) else (90.) in
-  L.rotate ~duration ~angle ~from_angle:(-. angle) cell
+  let angle = if positive_turn (from_dir, to_dir) then -90. else 90. in
+  L.rotate ~duration ~angle ~from_angle:(-.angle) cell
 
 (* move smoothly from p0 to (x,y) *)
 let smooth_move_cell duration cell p0 (x, y) =
   move_cell cell p0;
-  L.animate_x cell (fromto ~duration (L.xpos cell) (x*scale));
-  L.animate_y cell (fromto ~duration (L.ypos cell) (y*scale))
+  L.animate_x cell (fromto ~duration (L.xpos cell) (x * scale));
+  L.animate_y cell (fromto ~duration (L.ypos cell) (y * scale))
 
 let smooth_head duration head = function
-  | (a::(b::c::(_))) ->
-    smooth_move_cell duration head b a;
-    if vec_dir b a <> vec_dir c b
-    then smooth_rotate_cell duration (vec_dir c b) (vec_dir b a) head
+  | a :: b :: c :: _ ->
+      smooth_move_cell duration head b a;
+      if vec_dir b a <> vec_dir c b then
+        smooth_rotate_cell duration (vec_dir c b) (vec_dir b a) head
   | _ -> invalid_arg "[smooth_head] snake too short"
 
 (* We need to animate the second segment after the head, otherwise it will show
    up behind the head the the latter is animated. *)
 let smooth_second duration second = function
-  | (a::(b::_)) ->
-    begin match vec_dir b a with
-      | Right -> L.animate_w second (fromto ~duration 1 (scale+1))
-      | Left -> let (x,y) = a in
-        smooth_move_cell duration second (x+1, y) a;
-        L.animate_w second (fromto ~duration 1 (scale+1))
-      | Down -> L.animate_h second (fromto ~duration 1 (scale+1))
-      | Up -> let (x,y) = a in
-        smooth_move_cell duration second (x, y+1) a;
-        L.animate_h second (fromto ~duration 1 (scale+1))
-    end
+  | a :: b :: _ -> (
+      match vec_dir b a with
+      | Right -> L.animate_w second (fromto ~duration 1 (scale + 1))
+      | Left ->
+          let x, y = a in
+          smooth_move_cell duration second (x + 1, y) a;
+          L.animate_w second (fromto ~duration 1 (scale + 1))
+      | Down -> L.animate_h second (fromto ~duration 1 (scale + 1))
+      | Up ->
+          let x, y = a in
+          smooth_move_cell duration second (x, y + 1) a;
+          L.animate_h second (fromto ~duration 1 (scale + 1)))
   | _ -> invalid_arg "[smooth_second] snake too short"
 
 let smooth_tail area duration tail seg_snake old_pos snake =
   match List.rev seg_snake with
-  | (a::(b::_)) ->
-    if a <> old_pos
-    then let old_dir, new_dir = (vec_dir old_pos a), (vec_dir a b) in
-      if new_dir = old_dir
-      then match new_dir with
-        | Right ->
-          L.animate_w tail (fromto ~duration (2*scale) scale);
-          smooth_move_cell duration tail old_pos a;
-        | Left ->
-          L.animate_w tail (fromto ~duration (2*scale) scale)
-        | Up ->
-          L.animate_h tail (fromto ~duration (2*scale) scale)
-        | Down ->
-          L.animate_h tail (fromto ~duration (2*scale) scale);
-          smooth_move_cell duration tail old_pos a;
-      else begin
-        (* We revert the tail to the old direction.  *)
-        let tail = make_cell ~direction:old_dir area.images.snake_tail old_pos in
-        let () = match old_dir with
-        | Left ->
-          L.animate_w tail (fromto ~duration scale 0)
-        | Up ->
-          L.animate_h tail (fromto ~duration scale 0)
-        | Right ->
-          L.animate_w tail (fromto ~duration scale 0);
-          smooth_move_cell duration tail old_pos a
-        | Down ->
-          L.animate_h tail (fromto ~duration scale 0);
-          smooth_move_cell duration tail old_pos a
-        in
-        (* And add the "turn" element back, too.  *)
-        let last_turn = make_cell ~direction:old_dir
-            (get_turn_image old_dir new_dir area.images) a in
-        L.set_rooms ~sync:false area.snake
-          (tail :: (last_turn :: List.tl (List.rev snake)))
-      end
+  | a :: b :: _ ->
+      if a <> old_pos then
+        let old_dir, new_dir = (vec_dir old_pos a, vec_dir a b) in
+        if new_dir = old_dir then (
+          match new_dir with
+          | Right ->
+              L.animate_w tail (fromto ~duration (2 * scale) scale);
+              smooth_move_cell duration tail old_pos a
+          | Left -> L.animate_w tail (fromto ~duration (2 * scale) scale)
+          | Up -> L.animate_h tail (fromto ~duration (2 * scale) scale)
+          | Down ->
+              L.animate_h tail (fromto ~duration (2 * scale) scale);
+              smooth_move_cell duration tail old_pos a)
+        else
+          (* We revert the tail to the old direction.  *)
+          let tail =
+            make_cell ~direction:old_dir area.images.snake_tail old_pos
+          in
+          let () =
+            match old_dir with
+            | Left -> L.animate_w tail (fromto ~duration scale 0)
+            | Up -> L.animate_h tail (fromto ~duration scale 0)
+            | Right ->
+                L.animate_w tail (fromto ~duration scale 0);
+                smooth_move_cell duration tail old_pos a
+            | Down ->
+                L.animate_h tail (fromto ~duration scale 0);
+                smooth_move_cell duration tail old_pos a
+          in
+          (* And add the "turn" element back, too.  *)
+          let last_turn =
+            make_cell ~direction:old_dir
+              (get_turn_image old_dir new_dir area.images)
+              a
+          in
+          L.set_rooms ~sync:false area.snake
+            (tail :: last_turn :: List.tl (List.rev snake))
   | _ -> invalid_arg "[smooth_tail] snake too short"
 
 let smooth_snake area duration seg_snake old_tail snake =
@@ -413,139 +419,131 @@ let smooth_snake area duration seg_snake old_tail snake =
   let tail = List.hd (List.rev snake) in
   smooth_tail area duration tail seg_snake old_tail snake
 
-let apple_messages = [|
-  "You love apples";
-  "Yummy";
-  "Crunch";
-  "Good for you";
-  "Still hungry!";
-  "Eating for your life";
-  "Bon appetit "|]
+let apple_messages =
+  [|
+    "You love apples";
+    "Yummy";
+    "Crunch";
+    "Good for you";
+    "Still hungry!";
+    "Eating for your life";
+    "Bon appetit ";
+  |]
 
 let fruit_message score = function
-  | Apple -> if score < 2 then apple_messages.(0) else
-      apple_messages.(Random.int (Array.length apple_messages))
+  | Apple ->
+      if score < 2 then apple_messages.(0)
+      else apple_messages.(Random.int (Array.length apple_messages))
   | Banana -> "Banana power!"
   | Bonus -> "Bonus!"
 
 let gradient_bg color1 color2 =
-  L.style_bg (Style.(of_bg @@ gradient ~angle:45. [color1; color2]))
+  L.style_bg Style.(of_bg @@ gradient ~angle:45. [ color1; color2 ])
 
 let update_area area old_state state =
-  if state.game_over && not old_state.game_over
-  then begin
+  if state.game_over && not old_state.game_over then (
     let bg = gradient_bg Draw.(transp yellow) Draw.(transp red) in
     L.set_background area.screen (Some bg);
     L.rotate ~duration:500 ~from_angle:0. ~angle:360. area.score_board.layout;
-    let delay = if List.compare_lengths state.seg_snake state.level.target > 0
-      then (area.score_board.new_message "You ate too much!"; Some 2000)
-      else None in
-    area.score_board.new_message ?delay "Game over!";
-  end;
+    let delay =
+      if List.compare_lengths state.seg_snake state.level.target > 0 then (
+        area.score_board.new_message "You ate too much!";
+        Some 2000)
+      else None
+    in
+    area.score_board.new_message ?delay "Game over!");
 
-  if Levels.is_completed (state.level) &&
-     not (Levels.is_completed (old_state.level))
-  then begin
+  if
+    Levels.is_completed state.level && not (Levels.is_completed old_state.level)
+  then (
     let bg = gradient_bg Draw.(transp white) Draw.(transp green) in
     L.set_background area.screen (Some bg);
     L.rotate ~angle:180. area.screen;
-    area.score_board.new_message "Level completed!";
-  end;
+    area.score_board.new_message "Level completed!");
 
   (* When starting a new level *)
-  if Levels.is_new state.level && not (Levels.is_new old_state.level)
-  then begin
+  if Levels.is_new state.level && not (Levels.is_new old_state.level) then (
     L.set_background area.screen area.game_bg;
     L.set_rooms ~sync:false area.target
       (List.rev @@ build_snake area.target_images (Levels.target state.level));
     W.set_text area.score_board.target_length
       (sprintf "/ %i" (List.length (Levels.target state.level)));
-    if state.score <> 0 || old_state.game_over
-    then area.score_board.new_message
-        ("Level " ^ string_of_int (Levels.id state.level + 1));
-  end;
+    if state.score <> 0 || old_state.game_over then
+      area.score_board.new_message
+        ("Level " ^ string_of_int (Levels.id state.level + 1)));
 
   let snake = build_snake area.images state.seg_snake in
   L.set_rooms ~sync:false area.snake (List.rev snake);
 
-  if smooth && not (state.paused && old_state.paused)
-  (* If we have a new paused state we need to finish the animation
-     anyway. *)
-  then begin
-    let old_tail = List.hd (List.rev old_state.seg_snake) in
-    smooth_snake area (1000/state.fps) state.seg_snake old_tail snake;
-  end;
+  (if
+   smooth && not (state.paused && old_state.paused)
+   (* If we have a new paused state we need to finish the animation
+      anyway. *)
+  then
+   let old_tail = List.hd (List.rev old_state.seg_snake) in
+   smooth_snake area (1000 / state.fps) state.seg_snake old_tail snake);
 
-  if old_state.pos_fruit <> state.pos_fruit
-  (* Only for optimization. We could set the fruit image etc. at each step. *)
-  then begin
+  if
+    old_state.pos_fruit <> state.pos_fruit
+    (* Only for optimization. We could set the fruit image etc. at each step. *)
+  then (
     let fruit = fruit_layout area.images state.fruit state.pos_fruit in
-    if state.has_bonus
-    then let bonus = fruit_layout area.images Bonus old_state.pos_fruit in
-      L.set_rooms area.fruit [fruit; bonus];
-      L.animate_y bonus (fromto ~duration:1000 (L.ypos bonus) (-8*scale));
+    if state.has_bonus then (
+      let bonus = fruit_layout area.images Bonus old_state.pos_fruit in
+      L.set_rooms area.fruit [ fruit; bonus ];
+      L.animate_y bonus (fromto ~duration:1000 (L.ypos bonus) (-8 * scale));
       L.fade_out ~duration:2000 ~hide:true bonus;
-      L.zoom ~duration:1000 ~from_factor:1. ~to_factor:4. bonus;
-    else L.set_rooms area.fruit [fruit];
+      L.zoom ~duration:1000 ~from_factor:1. ~to_factor:4. bonus)
+    else L.set_rooms area.fruit [ fruit ];
     W.set_text area.score_board.score (string_of_int state.score);
     W.set_text area.score_board.length
       (string_of_int (List.length state.seg_snake));
-    if not (Levels.is_new state.level) && not state.game_over
-    then begin
+    if (not (Levels.is_new state.level)) && not state.game_over then (
       area.score_board.new_message
         (if state.full_size then "You are full!"
-         else (fruit_message old_state.score old_state.fruit));
-      if not state.full_size
-      then area.score_board.new_message ~delay:8000 "You are hungry"
-    end
-  end;
+        else fruit_message old_state.score old_state.fruit);
+      if not state.full_size then
+        area.score_board.new_message ~delay:8000 "You are hungry"));
 
-  if state.full_size && not old_state.full_size
-  then begin
+  if state.full_size && not old_state.full_size then (
     L.set_background area.screen (Some (L.color_bg Draw.(opaque green)));
-    Timeout.add 20 (fun () -> L.set_background area.screen area.game_bg) |> ignore
-  end;
+    Timeout.add 20 (fun () -> L.set_background area.screen area.game_bg)
+    |> ignore);
 
-  if old_state.game_over && not state.game_over
-  then Popup.yesno
-      (Printf.sprintf "\n\n       Score: %u\n       Final level: %u\n\n\n          Start again?"
-         old_state.score (old_state.level.id + 1))
+  if old_state.game_over && not state.game_over then
+    Popup.yesno
+      (Printf.sprintf
+         "\n\n\
+         \       Score: %u\n\
+         \       Final level: %u\n\n\n\
+         \          Start again?" old_state.score (old_state.level.id + 1))
       ~yes_action:(fun () ->
-          L.claim_keyboard_focus area.screen;
-          print_endline "Yes!")
+        L.claim_keyboard_focus area.screen;
+        print_endline "Yes!")
       ~no_action:(fun () -> raise Bogue.Exit)
       (L.top_house area.screen)
 
-  (* move_cell area.fruit state.pos_fruit *)
-;;
+(* move_cell area.fruit state.pos_fruit *)
 
 let rec pop = function
-  | [_] -> []
-  | hd :: tl -> hd :: (pop tl)
+  | [ _ ] -> []
+  | hd :: tl -> hd :: pop tl
   | [] -> invalid_arg "[pop]"
 
-let new_fruit () =
-  if Random.int 6 = 0 then Banana else Apple
+let new_fruit () = if Random.int 6 = 0 then Banana else Apple
 
 let rec new_pos_fruit seg_snake target full_size =
-  let new_pos =
-    (Random.int width,
-     Random.int height)
-  in
-  if List.mem new_pos seg_snake || (full_size && List.mem new_pos target)
-  then new_pos_fruit seg_snake target full_size
+  let new_pos = (Random.int width, Random.int height) in
+  if List.mem new_pos seg_snake || (full_size && List.mem new_pos target) then
+    new_pos_fruit seg_snake target full_size
   else new_pos
 
 let create_state ?(score = 0) level =
   Printf.sprintf "Level = %i" level |> print_endline;
-  let seg_snake = [
-    (5, 5);
-    (4, 5);
-    (3, 5);
-  ] in
+  let seg_snake = [ (5, 5); (4, 5); (3, 5) ] in
 
   let pos_snake = List.hd seg_snake in
-  let pos_fruit = (10,10) in
+  let pos_fruit = (10, 10) in
   let level = Levels.get level in
   {
     pos_snake;
@@ -561,63 +559,58 @@ let create_state ?(score = 0) level =
     score;
     level;
     full_size = false;
-    paused = true
+    paused = true;
   }
 
 (* The [update_state] function contains all the logic of the game. *)
-let update_state req_dir key_pressed (
-    { pos_snake;
-      seg_snake;
-      pos_fruit;
-      fruit;
-      dir_snake;
-      distance;
-      steps;
-      has_bonus;
-      game_over;
-      fps;
-      score;
-      level;
-      full_size;
-      paused
-    } as state) =
-
+let update_state req_dir key_pressed
+    ({
+       pos_snake;
+       seg_snake;
+       pos_fruit;
+       fruit;
+       dir_snake;
+       distance;
+       steps;
+       has_bonus;
+       game_over;
+       fps;
+       score;
+       level;
+       full_size;
+       paused;
+     } as state) =
   (* Are we paused? *)
   let paused = if key_pressed = Sdl.K.space then false else paused in
-  if paused then state
-
-  (* Should we start a new level? *)
-  else if level.completed
-  then create_state ~score:state.score (Levels.id state.level + 1)
-
-  (* Should we start again at level 0? *)
+  if paused then state (* Should we start a new level? *)
+  else if level.completed then
+    create_state ~score:state.score (Levels.id state.level + 1)
+    (* Should we start again at level 0? *)
   else if game_over then create_state 0
-
-  (* Now we can respond to the recorded key press. *)
+    (* Now we can respond to the recorded key press. *)
   else
     let new_dir_snake =
-      match dir_snake, req_dir with
-      | Left, Right
-      | Right, Left
-      | Up, Down
-      | Down, Up -> dir_snake
+      match (dir_snake, req_dir) with
+      | Left, Right | Right, Left | Up, Down | Down, Up -> dir_snake
       | _ -> req_dir
     in
     let pos_snake =
       let x, y = pos_snake in
       match new_dir_snake with
-      | Left  -> (x - 1, y)
+      | Left -> (x - 1, y)
       | Right -> (x + 1, y)
-      | Up    -> (x, y - 1)
-      | Down  -> (x, y + 1)
+      | Up -> (x, y - 1)
+      | Down -> (x, y + 1)
     in
     (* Do we hit the wall or ourself? *)
     let game_over =
       let x, y = pos_snake in
       List.mem pos_snake (pop seg_snake)
-      || x < 0 || y < 0
+      || x < 0
+      || y < 0
       || x >= width
-      || y >= height in
+      || y >= height
+    in
 
     (* Are we on a fruit? *)
     let eating = pos_snake = pos_fruit in
@@ -626,29 +619,36 @@ let update_state req_dir key_pressed (
 
     (* What happens when we eat a fruit: *)
     let full_size, game_over =
-      if eating
-      then let c = List.compare_lengths seg_snake level.target in
-        c = 0, c > 0
-      else full_size, game_over in
+      if eating then
+        let c = List.compare_lengths seg_snake level.target in
+        (c = 0, c > 0)
+      else (full_size, game_over)
+    in
 
     let seg_snake, pos_fruit, fruit, distance, fps, score, has_bonus =
-      if eating
-      then begin
+      if eating then (
         print_endline "Miam";
-        let fps = if fruit = Banana && not full_size
-          then level.fps + fps_boost else level.fps in
-        let score = if game_over then score
-          else if fruit = Banana then score + 5 else score + 1 in
-        let score, has_bonus = if steps + 1 = distance && not game_over
-          then score + bonus, true else score, false in
+        let fps =
+          if fruit = Banana && not full_size then level.fps + fps_boost
+          else level.fps
+        in
+        let score =
+          if game_over then score
+          else if fruit = Banana then score + 5
+          else score + 1
+        in
+        let score, has_bonus =
+          if steps + 1 = distance && not game_over then (score + bonus, true)
+          else (score, false)
+        in
         let new_pos_f = new_pos_fruit seg_snake level.target full_size in
-        (seg_snake,
-         new_pos_f,
-         new_fruit (),
-         dist pos_fruit new_pos_f,
-         fps,
-         score, has_bonus)
-      end
+        ( seg_snake,
+          new_pos_f,
+          new_fruit (),
+          dist pos_fruit new_pos_f,
+          fps,
+          score,
+          has_bonus ))
       else (pop seg_snake, pos_fruit, fruit, distance, fps, score, has_bonus)
     in
 
@@ -658,11 +658,13 @@ let update_state req_dir key_pressed (
     let level =
       if full_size && level.target = seg_snake then Levels.complete level
       else if Levels.is_new level then Levels.start level
-      else level in
+      else level
+    in
 
     let paused = game_over || Levels.is_completed level || paused in
 
-    { pos_snake;
+    {
+      pos_snake;
       seg_snake;
       pos_fruit;
       fruit;
@@ -675,7 +677,7 @@ let update_state req_dir key_pressed (
       score;
       level;
       full_size;
-      paused
+      paused;
     }
 
 let () =
@@ -683,24 +685,27 @@ let () =
   let initial_level = 0 in
   let initial_state = create_state initial_level in
   let area = make_area () in
-  let dummy_old_state = {
-    initial_state with
-    pos_fruit = (-1,-1);
-    level = Levels.start initial_state.level } in
+  let dummy_old_state =
+    {
+      initial_state with
+      pos_fruit = (-1, -1);
+      level = Levels.start initial_state.level;
+    }
+  in
   update_area area dummy_old_state initial_state;
   let state = ref initial_state in
   let req_dir = ref !state.dir_snake in
   let key_pressed = ref (-1) in
 
   let keychange_action _screen _none ev =
-    key_pressed := E.(get ev keyboard_keycode);
+    (key_pressed := E.(get ev keyboard_keycode));
     req_dir :=
-      match !key_pressed  with
+      match !key_pressed with
       | x when x = Sdl.K.left -> Left
       | x when x = Sdl.K.up -> Up
       | x when x = Sdl.K.right -> Right
       | x when x = Sdl.K.down -> Down
-      | _ -> (!state.dir_snake)
+      | _ -> !state.dir_snake
   in
 
   (* The main game engine is here: the [one_step] function calls [update_state]
@@ -712,46 +717,53 @@ let () =
     state := new_state;
     key_pressed := -1;
     Update.push (L.widget area.screen);
-    Timeout.add (1000/new_state.fps) one_step |> ignore
+    Timeout.add (1000 / new_state.fps) one_step |> ignore
   in
 
   (* Just for fun. *)
   let rec giggle_fruit () =
-    if Random.int 4 = 0
-    then L.animate_angle area.fruit
+    if Random.int 4 = 0 then
+      L.animate_angle area.fruit
         (Avar.oscillate ~duration:500 ~frequency:1. 30 0 |> Avar.apply float);
     Timeout.add 1000 giggle_fruit |> ignore
-
   in
 
   (* Now we construct the window. *)
   let _background = L.color_bg Draw.(opaque (find_color "skyblue")) in
-  let background = L.style_bg
-      Style.(of_bg @@ image_bg @@ Image.create
-               (Filename.concat images_dir "grass3.png")) in
+  let background =
+    L.style_bg
+      Style.(
+        of_bg
+        @@ image_bg
+        @@ Image.create (Filename.concat images_dir "grass3.png"))
+  in
   (* This background can be overrriden by area.game_bg *)
-  let game_layout = L.superpose ~name:"layout" ~scale_content:false
-      ~background [area.screen; area.target; area.fruit; area.snake] in
-  (* The snake cells layouts will be added to the snake rooms. *)
+  let game_layout =
+    L.superpose ~name:"layout" ~scale_content:false ~background
+      [ area.screen; area.target; area.fruit; area.snake ]
+  in
 
-  let layout = L.tower ~name:"snoke" ~background:(L.color_bg Draw.(opaque black))
-      [area.score_board.layout; game_layout] in
+  (* The snake cells layouts will be added to the snake rooms. *)
+  let layout =
+    L.tower ~name:"snoke"
+      ~background:(L.color_bg Draw.(opaque black))
+      [ area.score_board.layout; game_layout ]
+  in
 
   (* We register the key_down event *)
   let w = L.widget area.screen in
-  let c = W.connect_main w w keychange_action E.[key_down] in
+  let c = W.connect_main w w keychange_action E.[ key_down ] in
 
   (* Splash screen *)
-  Popup.one_button ~button:"Play"
-    ~dst:layout Splash.(splash ~w:(width * scale) ~h:(height * scale) images_dir)
+  Popup.one_button ~button:"Play" ~dst:layout
+    Splash.(splash ~w:(width * scale) ~h:(height * scale) images_dir)
     ~on_close:(fun () ->
-        L.show layout;
-        L.claim_keyboard_focus area.screen;
-        area.score_board.new_message ~delay:3000 "Press Space to start";
-        Sync.push one_step;
-        Sync.push giggle_fruit);
+      L.show layout;
+      L.claim_keyboard_focus area.screen;
+      area.score_board.new_message ~delay:3000 "Press Space to start";
+      Sync.push one_step;
+      Sync.push giggle_fruit);
 
-  let board = Bogue.of_layout ~connections:[c] layout in
+  let board = Bogue.of_layout ~connections:[ c ] layout in
 
   Bogue.run board
-;;

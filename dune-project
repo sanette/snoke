@@ -11,6 +11,5 @@
 (package
  (name snoke)
  (synopsis "Snóke is a good old Snake game with new ideas")
- (depends
-  (bogue (>= 20221008)))
+ (depends bogue) ; (bogue (>= 20221008) in fact)
 )

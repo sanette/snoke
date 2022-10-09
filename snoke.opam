@@ -5,9 +5,11 @@ synopsis: "Snóke is a good old Snake game with new ideas"
 maintainer: ["Vu Ngoc San <san.vu-ngoc@laposte.net>"]
 authors: ["Vu Ngoc San <san.vu-ngoc@laposte.net>"]
 license: "GPL-3.0-or-later"
+homepage: "https://github.com/sanette/snoke"
+bug-reports: "https://github.com/sanette/snoke/issues"
 depends: [
   "dune" {>= "2.9"}
-  "bogue" {>= "20221008"}
+  "bogue"
   "odoc" {with-doc}
 ]
 build: [
@@ -26,3 +28,4 @@ build: [
   ]
   ["dune" "install" "-p" name "--create-install-files" name]
 ]
+dev-repo: "git+https://github.com/sanette/snoke.git"

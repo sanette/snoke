@@ -9,7 +9,6 @@ homepage: "https://github.com/sanette/snoke"
 bug-reports: "https://github.com/sanette/snoke/issues"
 depends: [
   "dune" {>= "2.9"}
-  "tsdl" {<= "0.9.6"} # for windows?
   "bogue"
   "odoc" {with-doc}
 ]

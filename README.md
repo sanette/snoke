@@ -26,7 +26,12 @@ https://youtu.be/h1MC9-xDKFA
 
 ## Install
 
-Currently, you have to install Snóke as an opam package. Either
+Currently, you have to install Snóke as an opam package. First, you need to use the latest dev version of Bogue:
+```
+opam pin add https://github.com/sanette/bogue.git
+```
+
+Then, either
 ```
 opam pin add https://github.com/sanette/snoke.git
 opam install snoke

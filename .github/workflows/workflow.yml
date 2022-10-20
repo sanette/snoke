@@ -48,21 +48,6 @@ jobs:
           name: snoke-binary-${{ matrix.os }}-${{ matrix.ocaml-compiler }}
           path: snoke.tar
 
-  lint-doc:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Use OCaml 4.13.x
-        uses: ocaml/setup-ocaml@v2
-        with:
-          ocaml-compiler: 4.13.x
-          dune-cache: true
-
-      - name: Lint doc
-        uses: ocaml/setup-ocaml/lint-doc@v2
-
   lint-fmt:
     runs-on: ubuntu-latest
     steps:

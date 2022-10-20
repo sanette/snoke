@@ -38,13 +38,15 @@ jobs:
 
       - run: opam install .
 
-      - run: ls -alR $(opam var prefix)
+      - run: cd $(opam var prefix); zip -r snoke bin/snoke share/snoke/*
+
+      - run: mv $(opam var prefix)/snoke.zip .
 
       - name: Upload the build artifact
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.os }}-${{ matrix.ocaml-version }}-snoke.exe
-          path: _build/default/src/snoke.exe
+          path: snoke.zip
 
   lint-doc:
     runs-on: ubuntu-latest

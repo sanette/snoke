@@ -45,7 +45,7 @@ jobs:
       - name: Upload the build artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.os }}-${{ matrix.ocaml-version }}-snoke.exe
+          name: ${{ matrix.os }}-${{ matrix.ocaml-version }}-snoke.zip
           path: snoke.zip
 
   lint-doc:

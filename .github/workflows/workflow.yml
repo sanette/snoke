@@ -38,13 +38,13 @@ jobs:
 
       - run: opam install .
 
-      - run: mkdir -p snoke/bin; mkdir -p snoke/share/snoke; cp $(opam var prefix)/bin/snoke snoke/bin/; cp -r $(opam var prefix)/share/snoke snoke/share/
+      - run: cd $(opam var prefix); tar -cvf snoke.tar bin/snoke share/snoke
 
       - name: Upload the build artifact
         uses: actions/upload-artifact@v3
         with:
           name: snoke-binary-${{ matrix.os }}-${{ matrix.ocaml-compiler }}
-          path: snoke
+          path: snoke.tar
 
   lint-doc:
     runs-on: ubuntu-latest

@@ -38,7 +38,7 @@ jobs:
 
       - run: opam install .
 
-      - run: echo $(opam var prefix)
+      - run: ls -alR $(opam var prefix)
 
       - name: Upload the build artifact
         uses: actions/upload-artifact@v2

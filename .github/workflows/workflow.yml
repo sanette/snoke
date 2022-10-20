@@ -40,6 +40,8 @@ jobs:
 
       - run: cd $(opam var prefix); tar -cvf snoke.tar bin/snoke share/snoke
 
+      - run: mv $(opam var prefix)/snoke.tar .
+
       - name: Upload the build artifact
         uses: actions/upload-artifact@v3
         with:

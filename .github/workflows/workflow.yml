@@ -38,12 +38,12 @@ jobs:
 
       - run: opam install .
 
-      - run: mkdir snoke; cp -r $(opam var prefix)/bin snoke/; cp -r $(opam var prefix)/share snoke/;
+      - run: mkdir -p snoke/bin; mkdir -p snoke/share/snoke; cp $(opam var prefix)/bin/snoke snoke/bin/; cp -r $(opam var prefix)/share/snoke snoke/share/
 
       - name: Upload the build artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.os }}-${{ matrix.ocaml-version }}-snoke.zip
+          name: snoke-binary-${{ matrix.os }}-${{ matrix.ocaml-compiler }}
           path: snoke
 
   lint-doc:

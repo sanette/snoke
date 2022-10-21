@@ -26,7 +26,18 @@ https://youtu.be/h1MC9-xDKFA
 
 ## Install
 
-Currently, you have to install Snóke as an opam package. First, you need to use the latest dev version of Bogue:
+### Binaries
+
+If you're lucky, you may just download [precompiled binaries](https://github.com/sanette/snoke/tree/main/binaries) (ubuntu and macos).
+You will need to have the SDL2 library installed on your system.
+
+### From source
+
+It's also easy to build Snóke from source, and it will take care of
+all dependencies. This requires `ocaml`, and the `opam` package
+manager.
+
+First, you need to use the latest dev version of Bogue:
 ```
 opam pin add https://github.com/sanette/bogue.git
 ```
@@ -52,14 +63,10 @@ Alternatively, instead of the install step, you can directly run the game with
 dune exec src/snoke.exe
 ```
 
-### ???
-
-Yes, I know... I'm trying to learn how to distribute a binary package
-for those who don't want to install the whole `ocaml` stack!
-
 ## How did you make such a wonderful and entertaining game?
 
-I came across this
+First of all, it's written is `ocaml` which makes it fun to code!
+While `ocaml` is not particularly known for games, I came across this
 [nice blog article](http://decapode314.free.fr/re/tut/ocaml-re-tut.html)
 by Florent Monnier and said to myself: why not do this with
 [Bogue](http://sanette.github.io/bogue/Principles.html)?

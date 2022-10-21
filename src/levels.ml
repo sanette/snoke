@@ -15,7 +15,7 @@ type t = {
 
 (* Some geometric tools to draw a level *)
 
-let tranpose list = List.map (fun (x, y) -> (y, x)) list
+let transpose list = List.map (fun (x, y) -> (y, x)) list
 
 let hflip list =
   let y0 = snd (List.hd list) in
@@ -84,6 +84,7 @@ let level6 =
   |> line_to (3, 3)
   |> line_to (3, 2)
   |> line_to (0, 0)
+  |> transpose
   |> translate (15, 10)
 
 let level7 =
@@ -101,7 +102,7 @@ let level8 =
   |> line_to (4, 0)
   |> line_to (4, 5)
   |> line_to (3, 5)
-  |> tranpose
+  |> transpose
   |> translate (9, 6)
 
 let level9 =

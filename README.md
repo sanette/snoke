@@ -8,7 +8,7 @@ The game has several levels to complete. The goal is simple: find the
 snake **shed skin**, eat the exact amount of **fruit** to reach the size of
 that skin, and **cover** it precisely.
 
-* You **lose** if you eat to much, bumb into the area border, or into
+* You **lose** if you eat to much, bump into the area border, or into
   yourself
 
 * **Bananas** make you move faster (except when you reach your target
@@ -68,8 +68,9 @@ dune exec src/snoke.exe
 First of all, it's written is `ocaml` which makes it fun to code!
 While `ocaml` is not particularly known for games, I came across this
 [nice blog article](http://decapode314.free.fr/re/tut/ocaml-re-tut.html)
-by Florent Monnier and said to myself: why not do this with
-[Bogue](http://sanette.github.io/bogue/Principles.html)?
+by Florent Monnier and realized it would make a good challenge for
+testing the GUI library
+[Bogue](http://sanette.github.io/bogue/Principles.html).
 
 You can read [here](https://github.com/sanette/snake-bogue) how it all
 started.

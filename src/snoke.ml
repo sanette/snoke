@@ -31,6 +31,7 @@ let smooth = true
 let print_messages = false
 let fps_boost = 10
 let bonus = 4 (* optimal path score bonus *)
+let max_lives = 3
 
 let prefix =
   match Theme.find_share "snoke" "SnakeChan-MMoJ.ttf" with
@@ -39,10 +40,12 @@ let prefix =
       "."
   | Some path -> path
 
+let ( // ) = Filename.concat
+
 (* Overrides some of Bogue's theme variables *)
 let () =
   Theme.set_integer_scale true;
-  let snake_font = Filename.concat prefix "SnakeChan-MMoJ.ttf" in
+  let snake_font = prefix // "SnakeChan-MMoJ.ttf" in
   Theme.set_label_font snake_font;
   Theme.set_text_font snake_font;
   Draw.(set_text_color (find_color "azure"))
@@ -66,6 +69,7 @@ type game_state = {
   level : Levels.t;
   full_size : bool;
   paused : bool;
+  lives : int;
 }
 
 type images = {
@@ -100,6 +104,7 @@ type score_board = {
   length : W.t;
   target_length : W.t;
   new_message : ?delay:int -> string -> unit;
+  set_lives : int -> unit;
   layout : L.t;
 }
 
@@ -142,9 +147,9 @@ let angle_from_dir = function
   | Up -> 270.
   | Down -> 90.
 
-let images_dir = Filename.concat prefix images_dir
-let sounds_dir = Filename.concat prefix sounds_dir
-let load_img file = W.image ~w:scale ~h:scale (Filename.concat images_dir file)
+let images_dir = prefix // images_dir
+let sounds_dir = prefix // sounds_dir
+let load_img file = W.image ~w:scale ~h:scale (images_dir // file)
 
 let load_images () =
   {
@@ -203,7 +208,7 @@ let load_sound, play_sound =
   let mixer = Mixer.create_mixer devname in
   Mixer.unpause mixer;
   ( (fun ?(volume = 0.5) file ->
-      let c = Mixer.load_chunk mixer (Filename.concat sounds_dir file) in
+      let c = Mixer.load_chunk mixer (sounds_dir // file) in
       Mixer.change_volume volume c;
       c),
     fun sound -> ignore @@ Mixer.play_chunk mixer sound )
@@ -257,6 +262,22 @@ let play_sounds sounds old_state new_state =
     if (not old_state.level.completed) && new_state.level.completed then
       play_sound sounds.completed)
 
+(* The layout that holds the number of remaining lives *)
+let make_lives n =
+  let fg = Draw.(opaque red) in
+  let rec loop list i =
+    if i = n then list
+    else loop (L.resident (W.icon ~size:13 ~fg "heart") :: list) (i + 1)
+  in
+  let list = loop [] 0 in
+  let layouts = Array.of_list list in
+  let set x =
+    for i = 0 to n - 1 do
+      if i < x then L.show layouts.(i) else L.hide layouts.(i)
+    done
+  in
+  (L.flat ~sep:0 ~margins:0 list, set)
+
 let make_score_board () =
   let background = L.color_bg Draw.(opaque black) in
   let fg = Draw.(opaque green) in
@@ -272,7 +293,8 @@ let make_score_board () =
   let msg = L.resident ~w messages in
   let a = L.flat_of_w [ label_score; score ] in
   let b = L.flat_of_w [ label_length; length; target_length ] in
-  let layout = L.flat ~margins:2 ~background [ a; msg; b ] in
+  let lives, set_lives = make_lives 3 in
+  let layout = L.flat ~margins:2 ~background [ lives; a; msg; b ] in
   L.set_width layout (width * scale);
   let new_message =
     let timeout = ref None in
@@ -290,7 +312,7 @@ let make_score_board () =
           f ()
       | Some t -> timeout := Some (Timeout.add t f)
   in
-  { score; length; target_length; new_message; layout }
+  { score; length; target_length; new_message; set_lives; layout }
 
 (* Create the snake from the list of positions *)
 let build_snake images seg_snake =
@@ -317,7 +339,6 @@ let make_area () =
   let w, h = (scale * width, scale * height) in
   let images = load_images () in
   let target_images = load_target_images () in
-  let _game_bg = Some (L.color_bg Draw.(opaque (find_color "powderblue"))) in
   {
     snake = L.empty ~name:"snake" ~w ~h ();
     target = L.empty ~name:"snake" ~w ~h ();
@@ -331,6 +352,7 @@ let make_area () =
   }
 
 (* Smoothing animations: *)
+(* (can be disabled by setting smooth=false) *)
 
 let fromto = Avar.fromto_unif
 
@@ -375,7 +397,7 @@ let smooth_tail area duration tail seg_snake old_pos snake =
   | a :: b :: _ ->
       if a <> old_pos then
         let old_dir, new_dir = (vec_dir old_pos a, vec_dir a b) in
-        if new_dir = old_dir then (
+        if new_dir = old_dir then begin
           match new_dir with
           | Right ->
               L.animate_w tail (fromto ~duration (2 * scale) scale);
@@ -384,7 +406,8 @@ let smooth_tail area duration tail seg_snake old_pos snake =
           | Up -> L.animate_h tail (fromto ~duration (2 * scale) scale)
           | Down ->
               L.animate_h tail (fromto ~duration (2 * scale) scale);
-              smooth_move_cell duration tail old_pos a)
+              smooth_move_cell duration tail old_pos a
+        end
         else
           (* We revert the tail to the old direction.  *)
           let tail =
@@ -440,29 +463,40 @@ let fruit_message score = function
 let gradient_bg color1 color2 =
   L.style_bg Style.(of_bg @@ gradient ~angle:45. [ color1; color2 ])
 
+let lives_to_string x = sprintf "%u %s" x (if x > 1 then "lives" else "life")
+
 let update_area area old_state state =
-  if state.game_over && not old_state.game_over then (
+  if state.game_over && not old_state.game_over then begin
     let bg = gradient_bg Draw.(transp yellow) Draw.(transp red) in
     L.set_background area.screen (Some bg);
+    L.oscillate ~duration:200 ~frequency:10. 5 (L.top_house area.snake);
     L.rotate ~duration:500 ~from_angle:0. ~angle:360. area.score_board.layout;
+    area.score_board.set_lives (state.lives - 1);
     let delay =
-      if List.compare_lengths state.seg_snake state.level.target > 0 then (
+      if List.compare_lengths state.seg_snake state.level.target > 0 then begin
         area.score_board.new_message "You ate too much!";
-        Some 2000)
+        Some 2000
+      end
       else None
     in
-    area.score_board.new_message ?delay "Game over!");
+    let msg =
+      if state.lives = 1 then "Game over!"
+      else sprintf "%s remaining" (lives_to_string (state.lives - 1))
+    in
+    area.score_board.new_message ?delay msg
+  end;
 
   if
     Levels.is_completed state.level && not (Levels.is_completed old_state.level)
-  then (
+  then begin
     let bg = gradient_bg Draw.(transp white) Draw.(transp green) in
     L.set_background area.screen (Some bg);
     L.rotate ~angle:180. area.screen;
-    area.score_board.new_message "Level completed!");
+    area.score_board.new_message "Level completed!"
+  end;
 
   (* When starting a new level *)
-  if Levels.is_new state.level && not (Levels.is_new old_state.level) then (
+  if Levels.is_new state.level && not (Levels.is_new old_state.level) then begin
     L.set_background area.screen area.game_bg;
     L.set_rooms ~sync:false area.target
       (List.rev @@ build_snake area.target_images (Levels.target state.level));
@@ -470,7 +504,8 @@ let update_area area old_state state =
       (sprintf "/ %i" (List.length (Levels.target state.level)));
     if state.score <> 0 || old_state.game_over then
       area.score_board.new_message
-        ("Level " ^ string_of_int (Levels.id state.level + 1)));
+        ("Level " ^ string_of_int (Levels.id state.level + 1))
+  end;
 
   let snake = build_snake area.images state.seg_snake in
   L.set_rooms ~sync:false area.snake (List.rev snake);
@@ -486,31 +521,36 @@ let update_area area old_state state =
   if
     old_state.pos_fruit <> state.pos_fruit
     (* Only for optimization. We could set the fruit image etc. at each step. *)
-  then (
+  then begin
     let fruit = fruit_layout area.images state.fruit state.pos_fruit in
-    if state.has_bonus then (
+    if state.has_bonus then begin
       let bonus = fruit_layout area.images Bonus old_state.pos_fruit in
       L.set_rooms area.fruit [ fruit; bonus ];
       L.animate_y bonus (fromto ~duration:1000 (L.ypos bonus) (-8 * scale));
       L.fade_out ~duration:2000 ~hide:true bonus;
-      L.zoom ~duration:1000 ~from_factor:1. ~to_factor:4. bonus)
+      L.zoom ~duration:1000 ~from_factor:1. ~to_factor:4. bonus
+    end
     else L.set_rooms area.fruit [ fruit ];
     W.set_text area.score_board.score (string_of_int state.score);
     W.set_text area.score_board.length
       (string_of_int (List.length state.seg_snake));
-    if (not (Levels.is_new state.level)) && not state.game_over then (
+    if (not (Levels.is_new state.level)) && not state.game_over then begin
       area.score_board.new_message
         (if state.full_size then "You are full!"
         else fruit_message old_state.score old_state.fruit);
       if not state.full_size then
-        area.score_board.new_message ~delay:8000 "You are hungry"));
+        area.score_board.new_message ~delay:8000 "You are hungry"
+    end
+  end;
 
-  if state.full_size && not old_state.full_size then (
+  if state.full_size && not old_state.full_size then begin
     L.set_background area.screen (Some (L.color_bg Draw.(opaque green)));
     Timeout.add 20 (fun () -> L.set_background area.screen area.game_bg)
-    |> ignore);
+    |> ignore
+  end;
 
-  if old_state.game_over && not state.game_over then
+  if old_state.game_over && (not state.game_over) && old_state.lives = 1 then begin
+    area.score_board.set_lives state.lives;
     Popup.yesno
       (Printf.sprintf
          "\n\n\
@@ -522,6 +562,7 @@ let update_area area old_state state =
         print_endline "Yes!")
       ~no_action:(fun () -> raise Bogue.Exit)
       (L.top_house area.screen)
+  end
 
 (* move_cell area.fruit state.pos_fruit *)
 
@@ -538,7 +579,7 @@ let rec new_pos_fruit seg_snake target full_size =
     new_pos_fruit seg_snake target full_size
   else new_pos
 
-let create_state ?(score = 0) level =
+let create_state ?(score = 0) ~lives level =
   Printf.sprintf "Level = %i" level |> print_endline;
   let seg_snake = [ (5, 5); (4, 5); (3, 5) ] in
 
@@ -560,6 +601,7 @@ let create_state ?(score = 0) level =
     level;
     full_size = false;
     paused = true;
+    lives;
   }
 
 (* The [update_state] function contains all the logic of the game. *)
@@ -579,15 +621,19 @@ let update_state req_dir key_pressed
        level;
        full_size;
        paused;
+       lives;
      } as state) =
   (* Are we paused? *)
   let paused = if key_pressed = Sdl.K.space then false else paused in
   if paused then state (* Should we start a new level? *)
   else if level.completed then
-    create_state ~score:state.score (Levels.id state.level + 1)
-    (* Should we start again at level 0? *)
-  else if game_over then create_state 0
-    (* Now we can respond to the recorded key press. *)
+    create_state ~score:state.score ~lives (Levels.id state.level + 1)
+  else if game_over then
+    if lives >= 2 (* restart the same level *) then
+      create_state ~score ~lives:(lives - 1) level.id
+    else create_state ~score:0 ~lives:max_lives 0
+      (* Start again at level 0 *)
+      (* Now we can respond to the recorded key press. *)
   else
     let new_dir_snake =
       match (dir_snake, req_dir) with
@@ -626,7 +672,7 @@ let update_state req_dir key_pressed
     in
 
     let seg_snake, pos_fruit, fruit, distance, fps, score, has_bonus =
-      if eating then (
+      if eating then begin
         print_endline "Miam";
         let fps =
           if fruit = Banana && not full_size then level.fps + fps_boost
@@ -648,7 +694,8 @@ let update_state req_dir key_pressed
           dist pos_fruit new_pos_f,
           fps,
           score,
-          has_bonus ))
+          has_bonus )
+      end
       else (pop seg_snake, pos_fruit, fruit, distance, fps, score, has_bonus)
     in
 
@@ -678,12 +725,14 @@ let update_state req_dir key_pressed
       level;
       full_size;
       paused;
+      lives;
     }
 
 let () =
   Random.self_init ();
   let initial_level = 0 in
-  let initial_state = create_state initial_level in
+  let lives = max_lives in
+  let initial_state = create_state ~lives initial_level in
   let area = make_area () in
   let dummy_old_state =
     {
@@ -729,13 +778,9 @@ let () =
   in
 
   (* Now we construct the window. *)
-  let _background = L.color_bg Draw.(opaque (find_color "skyblue")) in
   let background =
     L.style_bg
-      Style.(
-        of_bg
-        @@ image_bg
-        @@ Image.create (Filename.concat images_dir "grass3.png"))
+      Style.(of_bg @@ image_bg @@ Image.create (images_dir // "grass3.png"))
   in
   (* This background can be overrriden by area.game_bg *)
   let game_layout =

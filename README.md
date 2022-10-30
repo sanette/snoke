@@ -77,6 +77,7 @@ started.
 
 ## TODO
 
+* **DONE** ~~The snake should have 3 lives before game over~~
 * More levels
 * High-scores list
 * More fruit with effects

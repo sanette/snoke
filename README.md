@@ -20,9 +20,13 @@ that skin, and **cover** it precisely.
 
 ![game](snoke_game.png)
 
+(v0.1)
+
 ## Video
 
 https://youtu.be/h1MC9-xDKFA
+
+(v0.1)
 
 ## Install
 
@@ -77,7 +81,7 @@ started.
 
 ## TODO
 
-* **DONE** ~~The snake should have 3 lives before game over~~
+* **DONE** (v0.2) ~~The snake should have 3 lives before game over~~
 * More levels
 * High-scores list
 * More fruit with effects

@@ -158,7 +158,7 @@ let load_images () =
     snake_tail = load_img "snake-tail.png";
     snake_turn_pos = load_img "snake-turn-pos.png";
     snake_turn_neg = load_img "snake-turn-neg.png";
-    apple = load_img "apple.png";
+    apple = load_img "pumkin.png";
     banana = load_img "banana.png";
     bonus = load_img "bonus.png";
   }
@@ -444,13 +444,14 @@ let smooth_snake area duration seg_snake old_tail snake =
 
 let apple_messages =
   [|
-    "You love apples";
+    "You love pumkins";
     "Yummy";
     "Crunch";
     "Good for you";
     "Still hungry!";
     "Eating for your life";
     "Bon appetit ";
+    "Happy Halloween"
   |]
 
 let fruit_message score = function
@@ -730,7 +731,7 @@ let update_state req_dir key_pressed
 
 let () =
   Random.self_init ();
-  let initial_level = 0 in
+  let initial_level = 6 in
   let lives = max_lives in
   let initial_state = create_state ~lives initial_level in
   let area = make_area () in

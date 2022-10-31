@@ -17,7 +17,8 @@ type t = {
 
 let transpose list = List.map (fun (x, y) -> (y, x)) list
 
-let hflip list =
+(* Symmetric wrt horiz axis *)
+let vflip list =
   let y0 = snd (List.hd list) in
   List.map (fun (x, y) -> (x, (2 * y0) - y)) list
 
@@ -27,7 +28,7 @@ let rec line (x0, y0) (x1, y1) =
   (* We draw backwards from p1 to p0.  Hence, for convenience we assume x1 <=
      x0 *)
   if x0 < x1 then List.rev (line (x1, y1) (x0, y0))
-  else if y0 < y1 then hflip (line (x0, y0) (x1, (2 * y0) - y1))
+  else if y0 < y1 then vflip (line (x0, y0) (x1, (2 * y0) - y1))
   else
     (* Now we have only two possible moves: right or down, we determine which
        one by computing the distance to the ideal line. *)
@@ -84,7 +85,7 @@ let level6 =
   |> line_to (3, 3)
   |> line_to (3, 2)
   |> line_to (0, 0)
-  |> transpose
+  |> List.rev
   |> translate (15, 10)
 
 let level7 =

@@ -6,7 +6,8 @@
 (install
  (section share)
  (files
-  "SnakeChan-MMoJ.ttf"
+   "SnakeChan-MMoJ.ttf"
+  ("images/pumkin.png" as "images/pumkin.png")
   ("images/apple.png" as "images/apple.png")
   ("images/banana.png" as "images/banana.png")
   ("images/bonus.png" as "images/bonus.png")

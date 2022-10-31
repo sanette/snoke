@@ -731,7 +731,7 @@ let update_state req_dir key_pressed
 
 let () =
   Random.self_init ();
-  let initial_level = 6 in
+  let initial_level = 0 in
   let lives = max_lives in
   let initial_state = create_state ~lives initial_level in
   let area = make_area () in

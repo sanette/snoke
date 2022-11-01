@@ -9,11 +9,12 @@ let quit _ _ _ = raise Bogue.Exit
 let halloween = true
 
 let pumkin (w,h) images_dir =
-  let pumkin = W.image (Filename.concat images_dir "pumkin2.png")
-               |> L.resident ~x:0 ~y:0 in
+  let img = W.image (Filename.concat images_dir "pumkin2.png") in
+  let pumkin = L.resident ~x:0 ~y:0 img in
   L.hide ~duration:0 pumkin;
   Timeout.add 3000 (fun () ->
       print_endline "Boooo";
+      W.update img;
       L.show pumkin;
       L.zoom ~duration:4000 ~from_factor:0.1 ~to_factor:7. pumkin;
       L.oscillate ~duration:3000 ~frequency:5. (w/2) pumkin;

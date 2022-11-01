@@ -158,7 +158,7 @@ let load_images () =
     snake_tail = load_img "snake-tail.png";
     snake_turn_pos = load_img "snake-turn-pos.png";
     snake_turn_neg = load_img "snake-turn-neg.png";
-    apple = load_img "pumkin.png";
+    apple = load_img "apple.png";
     banana = load_img "banana.png";
     bonus = load_img "bonus.png";
   }
@@ -444,14 +444,13 @@ let smooth_snake area duration seg_snake old_tail snake =
 
 let apple_messages =
   [|
-    "You love pumkins";
+    "You love apples";
     "Yummy";
     "Crunch";
     "Good for you";
     "Still hungry!";
     "Eating for your life";
-    "Bon appetit ";
-    "Happy Halloween"
+    "Bon appetit "
   |]
 
 let fruit_message score = function

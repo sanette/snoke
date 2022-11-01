@@ -64,7 +64,8 @@ snoke
 
 Alternatively, instead of the install step, you can directly run the game with
 ```
-dune exec src/snoke.exe
+cd src
+dune exec ./snoke.exe
 ```
 
 ## How did you make such a wonderful and entertaining game?
@@ -82,7 +83,7 @@ started.
 ## TODO
 
 * **DONE** (v0.2) ~~The snake should have 3 lives before game over~~
-* **DONE** (v0.2-halloween-wink) Eat pumkins!
+* **DONE** (v0.2-halloween-wink) ~~Eat pumkins!~~
 * More levels
 * High-scores list
 * More fruit with effects

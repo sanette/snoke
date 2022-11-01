@@ -7,8 +7,6 @@
  (section share)
  (files
    "SnakeChan-MMoJ.ttf"
-  ("images/pumkin.png" as "images/pumkin.png")
-  ("images/pumkin2.png" as "images/pumkin2.png")
   ("images/apple.png" as "images/apple.png")
   ("images/banana.png" as "images/banana.png")
   ("images/bonus.png" as "images/bonus.png")

@@ -1,6 +1,6 @@
 (lang dune 2.9)
 (name snoke)
-(version "0.2-halloween")
+(version "0.3-pre")
 (generate_opam_files true)
 (license GPL-3.0-or-later)
 (maintainers "Vu Ngoc San <san.vu-ngoc@laposte.net>")

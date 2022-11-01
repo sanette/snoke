@@ -6,7 +6,7 @@ module E = Tsdl.Sdl.Event
 let splash_screen = "snoke_title.png"
 let quit _ _ _ = raise Bogue.Exit
 
-let halloween = true
+let halloween = false
 
 let pumkin (w,h) images_dir =
   let img = W.image (Filename.concat images_dir "pumkin2.png") in

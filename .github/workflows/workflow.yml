@@ -20,6 +20,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - if: ${{ contains(matrix.host_os, 'ubuntu') }}
+        name: Update Ubuntu repos
+        run: sudo apt-get update -y
+
       - name: Checkout code
         uses: actions/checkout@v3
 

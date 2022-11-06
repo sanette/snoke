@@ -207,7 +207,7 @@ let load_sound, play_sound =
   let devname = Mixer.init () in
   let mixer = Mixer.create_mixer devname in
   Mixer.unpause mixer;
-  ( (fun ?(volume = 0.5) file ->
+  ( (fun ?(volume = 0.25) file ->
       let c = Mixer.load_chunk mixer (sounds_dir // file) in
       Mixer.change_volume volume c;
       c),
@@ -215,17 +215,17 @@ let load_sound, play_sound =
 
 let load_sounds () =
   {
-    eat = load_sound ~volume:0.4 "crunch.wav";
-    right = load_sound ~volume:0.2 "do.wav";
-    up = load_sound ~volume:0.2 "sol.wav";
-    left = load_sound ~volume:0.2 "fa.wav";
-    down = load_sound ~volume:0.2 "re.wav";
+    eat = load_sound ~volume:0.2 "crunch.wav";
+    right = load_sound ~volume:0.1 "do.wav";
+    up = load_sound ~volume:0.1 "sol.wav";
+    left = load_sound ~volume:0.1 "fa.wav";
+    down = load_sound ~volume:0.1 "re.wav";
     over = load_sound "over.wav";
-    fast = load_sound ~volume:0.4 "fast.wav";
+    fast = load_sound ~volume:0.2 "fast.wav";
     completed = load_sound "completed.wav";
     new_level = load_sound "new_level.wav";
-    yeah = load_sound ~volume:0.2 "oh_yeah.wav";
-    great = load_sound ~volume:0.2 "great.wav";
+    yeah = load_sound ~volume:0.1 "oh_yeah.wav";
+    great = load_sound ~volume:0.1 "great.wav";
   }
 
 let fruit_sound sounds = function

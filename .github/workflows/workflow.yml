@@ -21,7 +21,6 @@ jobs:
 
     steps:
       - if: ${{ contains(matrix.host_os, 'ubuntu') }}
-        name: Update Ubuntu repos
         run: sudo apt-get update -y
 
       - name: Checkout code

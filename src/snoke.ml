@@ -450,7 +450,7 @@ let apple_messages =
     "Good for you";
     "Still hungry!";
     "Eating for your life";
-    "Bon appetit "
+    "Bon appetit ";
   |]
 
 let fruit_message score = function

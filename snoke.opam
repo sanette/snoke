@@ -29,3 +29,6 @@ build: [
   ["dune" "install" "-p" name "--create-install-files" name]
 ]
 dev-repo: "git+https://github.com/sanette/snoke.git"
+pin-depends: [
+  ["bogue" "https://github.com/sanette/bogue.git"]
+]

@@ -41,12 +41,7 @@ It's also easy to build Snóke from source, and it will take care of
 all dependencies. This requires `ocaml`, and the `opam` package
 manager.
 
-First, you need to use the latest dev version of Bogue:
-```
-opam pin add https://github.com/sanette/bogue.git
-```
-
-Then, either
+Just do:
 ```
 opam pin add https://github.com/sanette/snoke.git
 opam install snoke
@@ -82,8 +77,9 @@ started.
 
 ## TODO
 
+* (v0.3) First opam package.
 * **DONE** (v0.2) ~~The snake should have 3 lives before game over~~
-* **DONE** (v0.2-halloween-wink) Eat pumkins!
+* **DONE** (v0.2-halloween-wink) ~~Eat pumkins!~~
 * More levels
 * High-scores list
 * More fruit with effects

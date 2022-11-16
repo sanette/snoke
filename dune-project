@@ -11,7 +11,5 @@
 (package
  (name snoke)
  (synopsis "Snóke is a good old Snake game with new ideas")
- (depends bogue) ; (bogue (>= 20221008) in fact, but this version is
-                 ; not in opam right now, so we do this in order to
-                 ; make the CI happy.)
+ (depends (bogue (>= 20221112)))
 )

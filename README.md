@@ -32,7 +32,7 @@ https://youtu.be/h1MC9-xDKFA
 
 ### Binaries
 
-If you're lucky, you may just download [precompiled binaries](https://github.com/sanette/snoke/tree/main/binaries) (ubuntu and macos).
+If you're lucky, you may just download one of the precompiled binaries of the [latest release](https://github.com/sanette/snoke/releases/latest), or one of the latest [automatic builds](https://github.com/sanette/snoke/tree/main/binaries) (ubuntu and macos).
 You will need to have the SDL2 library installed on your system.
 
 ### From source

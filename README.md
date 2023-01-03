@@ -78,7 +78,7 @@ started.
 ## TODO
 
 * Joystick support
-* (v0.3) **DONE** ~~First opam package.~~
+* **DONE** (v0.3) ~~First opam package.~~
 * **DONE** (v0.2) ~~The snake should have 3 lives before game over~~
 * **DONE** (v0.2-halloween-wink) ~~Eat pumkins!~~
 * More levels

@@ -1,6 +1,6 @@
 # Snóke, old snake game with new ideas
 
-![title](snoke_title.png)
+![title](https://raw.githubusercontent.com/sanette/snoke/main/snoke_title.png)
 
 ## The rules of the game
 
@@ -18,7 +18,7 @@ that skin, and **cover** it precisely.
 
 ## Screenshots
 
-![game](snoke_game.png)
+![game](https://raw.githubusercontent.com/sanette/snoke/main/snoke_game.png)
 
 (v0.1)
 
@@ -77,7 +77,8 @@ started.
 
 ## TODO
 
-* (v0.3) First opam package.
+* Joystick support
+* (v0.3) **DONE** ~~First opam package.~~
 * **DONE** (v0.2) ~~The snake should have 3 lives before game over~~
 * **DONE** (v0.2-halloween-wink) ~~Eat pumkins!~~
 * More levels

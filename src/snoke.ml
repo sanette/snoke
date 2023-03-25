@@ -511,12 +511,12 @@ let update_area area old_state state =
   L.set_rooms ~sync:false area.snake (List.rev snake);
 
   (if
-   smooth && not (state.paused && old_state.paused)
-   (* If we have a new paused state we need to finish the animation
-      anyway. *)
-  then
-   let old_tail = List.hd (List.rev old_state.seg_snake) in
-   smooth_snake area (1000 / state.fps) state.seg_snake old_tail snake);
+     smooth && not (state.paused && old_state.paused)
+     (* If we have a new paused state we need to finish the animation
+        anyway. *)
+   then
+     let old_tail = List.hd (List.rev old_state.seg_snake) in
+     smooth_snake area (1000 / state.fps) state.seg_snake old_tail snake);
 
   if
     old_state.pos_fruit <> state.pos_fruit
@@ -537,7 +537,7 @@ let update_area area old_state state =
     if (not (Levels.is_new state.level)) && not state.game_over then begin
       area.score_board.new_message
         (if state.full_size then "You are full!"
-        else fruit_message old_state.score old_state.fruit);
+         else fruit_message old_state.score old_state.fruit);
       if not state.full_size then
         area.score_board.new_message ~delay:8000 "You are hungry"
     end

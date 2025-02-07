@@ -44,7 +44,7 @@ let ( // ) = Filename.concat
 
 (* Overrides some of Bogue's theme variables *)
 let () =
-  Theme.set_integer_scale true;
+  Theme.set_int_scale true;
   let snake_font = prefix // "SnakeChan-MMoJ.ttf" in
   Theme.set_label_font snake_font;
   Theme.set_text_font snake_font;
@@ -357,7 +357,7 @@ let make_area () =
 let fromto = Avar.fromto_unif
 
 (* Apply smooth rotation from the *previous* rotation to smoothly arrive at the
-   *current* rotation. *)
+ *current* rotation. *)
 let smooth_rotate_cell duration from_dir to_dir cell =
   let angle = if positive_turn (from_dir, to_dir) then -90. else 90. in
   L.rotate ~duration ~angle ~from_angle:(-.angle) cell
@@ -556,7 +556,8 @@ let update_area area old_state state =
          "\n\n\
          \       Score: %u\n\
          \       Final level: %u\n\n\n\
-         \          Start again?" old_state.score (old_state.level.id + 1))
+         \          Start again?"
+         old_state.score (old_state.level.id + 1))
       ~yes_action:(fun () ->
         L.claim_keyboard_focus area.screen;
         print_endline "Yes!")
@@ -632,9 +633,9 @@ let update_state req_dir key_pressed
     if lives >= 2 (* restart the same level *) then
       create_state ~score ~lives:(lives - 1) level.id
     else create_state ~score:0 ~lives:max_lives 0
-      (* Start again at level 0 *)
-      (* Now we can respond to the recorded key press. *)
-  else
+  (* Start again at level 0 *)
+  (* Now we can respond to the recorded key press. *)
+    else
     let new_dir_snake =
       match (dir_snake, req_dir) with
       | Left, Right | Right, Left | Up, Down | Down, Up -> dir_snake

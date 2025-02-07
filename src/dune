@@ -1,6 +1,7 @@
 (executable
  (name snoke)
  (public_name snoke)
+ ; (ocamlopt_flags "-g") 
  (libraries bogue))
 
 (install

@@ -31,9 +31,7 @@ let splash ?w ?h images_dir =
   let c = W.connect_main img img quit E.[ key_down ] in
   W.add_connection img c;
   let background =
-    L.style_bg
-    @@ Style.of_bg
-         (Style.gradient Draw.[ opaque white; opaque (find_color "skyblue") ])
+    L.style_bg @@ Style.of_bg (Style.gradient RGBA.[ white; skyblue ])
   in
   let room = L.resident ~background img in
   L.zoom ~duration:1000 ~from_factor:10. ~to_factor:1. room;

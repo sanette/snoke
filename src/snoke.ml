@@ -48,7 +48,7 @@ let () =
   let snake_font = prefix // "SnakeChan-MMoJ.ttf" in
   Theme.set_label_font snake_font;
   Theme.set_text_font snake_font;
-  Draw.(set_text_color (find_color "azure"))
+  Draw.(set_text_color (find_color "steelblue"))
 
 type pos = int * int
 type direction = Left | Right | Up | Down
@@ -264,7 +264,7 @@ let play_sounds sounds old_state new_state =
 
 (* The layout that holds the number of remaining lives *)
 let make_lives n =
-  let fg = Draw.(opaque red) in
+  let fg = RGBA.red in
   let rec loop list i =
     if i = n then list
     else loop (L.resident (W.icon ~size:13 ~fg "heart") :: list) (i + 1)
@@ -279,8 +279,8 @@ let make_lives n =
   (L.flat ~sep:0 ~margins:0 list, set)
 
 let make_score_board () =
-  let background = L.color_bg Draw.(opaque black) in
-  let fg = Draw.(opaque green) in
+  let background = L.color_bg RGBA.black in
+  let fg = RGBA.green in
   let label_score = W.label ~fg ~align:Draw.Max "Score:" in
   let label_length = W.label ~fg ~align:Draw.Max "Length:" in
   let score = W.label ~fg ~align:Draw.Min "0000" in
@@ -467,7 +467,7 @@ let lives_to_string x = sprintf "%u %s" x (if x > 1 then "lives" else "life")
 
 let update_area area old_state state =
   if state.game_over && not old_state.game_over then begin
-    let bg = gradient_bg Draw.(transp yellow) Draw.(transp red) in
+    let bg = gradient_bg Draw.(transp RGB.yellow) Draw.(transp RGB.red) in
     L.set_background area.screen (Some bg);
     L.oscillate ~duration:200 ~frequency:10. 5 (L.top_house area.snake);
     L.rotate ~duration:500 ~from_angle:0. ~angle:360. area.score_board.layout;
@@ -489,7 +489,7 @@ let update_area area old_state state =
   if
     Levels.is_completed state.level && not (Levels.is_completed old_state.level)
   then begin
-    let bg = gradient_bg Draw.(transp white) Draw.(transp green) in
+    let bg = gradient_bg Draw.(transp RGB.white) Draw.(transp RGB.green) in
     L.set_background area.screen (Some bg);
     L.rotate ~angle:180. area.screen;
     area.score_board.new_message "Level completed!"
@@ -544,7 +544,7 @@ let update_area area old_state state =
   end;
 
   if state.full_size && not old_state.full_size then begin
-    L.set_background area.screen (Some (L.color_bg Draw.(opaque green)));
+    L.set_background area.screen (Some (L.color_bg RGBA.green));
     Timeout.add 20 (fun () -> L.set_background area.screen area.game_bg)
     |> ignore
   end;
@@ -791,8 +791,7 @@ let () =
 
   (* The snake cells layouts will be added to the snake rooms. *)
   let layout =
-    L.tower ~name:"snoke"
-      ~background:(L.color_bg Draw.(opaque black))
+    L.tower ~name:"snoke" ~background:(L.color_bg RGBA.black)
       [ area.score_board.layout; game_layout ]
   in
 
